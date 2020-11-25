@@ -67,8 +67,8 @@ public class Algorithms {
         }
     }
 
-    public static double FuncaoDeAvaliacao(ProblemSolution S, List<Request> listOfRequests, List<List<Long>> c) {
-        double avaliacao = 0;
+    public static double scalarizedEvaluationFuntion(ProblemSolution solution, List<Request> listOfRequests, List<List<Long>> c) {
+        double evaluation = 0;
         double V = 12;
         //double alfa = S.getNonAttendedRequestsList().size();
         double alfa = 10 * listOfRequests.size();
@@ -76,10 +76,12 @@ public class Algorithms {
         double gama = 1;//12 é o número de pontos de parada incluindo o depósito
         int Y = 1000;
         int W = 800;
-        //avaliacao = S.getTotalDistance() + alfa * S.getNumberOfNonAttendedRequests() + beta * S.getDeliveryTimeWindowAntecipation() + gama * S.getDeliveryTimeWindowDelay();
-        avaliacao = S.getTotalDistance() + S.getSetOfRoutes().size() * W + S.getNonAttendedRequestsList().size() * Y;
-
-        return avaliacao;
+        //evaluation = S.getTotalDistance() + alfa * S.getNumberOfNonAttendedRequests() + beta * S.getDeliveryTimeWindowAntecipation() + gama * S.getDeliveryTimeWindowDelay();
+        evaluation = solution.getTotalDistance()/100 + solution.getTotalDeliveryDelay()*100 + solution.getTotalRouteTimeChargeBanlance()+
+                solution.getNumberOfVehicles()*10 + solution.getTotalWaintingTime() + solution.getTotalTravelTime() +  solution.getDeliveryTimeWindowAntecipation() + 
+                solution.getTotalOccupationRate()*10;
+        
+        return evaluation;
     }
 
     //Função Objetivo
@@ -195,12 +197,10 @@ public class Algorithms {
         routes.addAll(solution.getSetOfRoutes());
         List<Long> routeEndTime = new ArrayList<>();
         for (Route route : routes) {
-            System.out.println("teste na rota");
 //            System.out.println(route.getRequestAttendanceList().get(0).getPickupTime());
 //            System.out.println(route.getRequestAttendanceList().get(route.getRequestAttendanceList().size() - 1).getDeliveryTime());
             long endTime = route.getTimeListTheVehicleLeavesTheNode().get(route.getTimeListTheVehicleLeavesTheNode().size() - 2);
             long startTime = route.getTimeListTheVehicleLeavesTheNode().get(1);
-            System.out.println("Start " + startTime + " end " + endTime);
             long time = endTime - startTime ;
 //            long time = route.getTimeListTheVehicleLeavesTheNode().get(route.getNodesVisitationList().size() - 2);
 //            long time = route.getTimeListTheVehicleLeavesTheNode().get(route.getNodesVisitationList().size() - 2);
@@ -838,8 +838,11 @@ public class Algorithms {
 
         solution.setNonAttendedRequestsList(listOfNonAttendedRequests);
         evaluateSolution(solution, nadirPoint, distanceBetweenNodes, vehicleCapacity, requests);
+//        evaluateSolution(solution, nadirPoint, c, Qmax, listRequests);
+//        evaluateAggregatedObjectiveFunctions(parameters, solution);
         solution.setLogger(log);
         solution.linkTheRoutes();
+        
 
         return solution;
     }
@@ -1058,7 +1061,7 @@ public class Algorithms {
         solution.setObjectivesNormalizedList();
         
         Algorithms.evaluateAggregatedObjectiveFunctions(solution, 1, 1, 1, 1, 1);
-        solution.setObjectiveFunction(FuncaoDeAvaliacao(solution, listOfRequests, distanceBetweenNodes));
+        solution.setObjectiveFunction(scalarizedEvaluationFuntion(solution, listOfRequests, distanceBetweenNodes));
     }
 
     public static ProblemSolution rebuildSolution(int reducedDimension, List<List<Double>> nadirPoint, List<Double> parameters,
@@ -2203,8 +2206,8 @@ public class Algorithms {
                 k++;
             }
             System.out.println("k = " + k);
-            s.setSolution(firstImprovementAlgorithm(reducedDimension, nadirPoint, parameters, s_0, k, listRequests, P, K, U, Pin, Pout, d, c, n, Qmax, TimeWindows));
-            //s.setSolution(bestImprovementAlgorithm(s_0, k, listRequests, P, K, U, Pin, Pout, d, c, n, Qmax, TimeWindows));
+            //s.setSolution(firstImprovementAlgorithm(reducedDimension, nadirPoint, parameters, s_0, k, listRequests, P, K, U, Pin, Pout, d, c, n, Qmax, TimeWindows));
+            s.setSolution(bestImprovementAlgorithm(reducedDimension, nadirPoint, parameters, s_0, k, listRequests, P, K, U, Pin, Pout, d, c, n, Qmax, TimeWindows));
             if (s.getObjectiveFunction() < melhor.getObjectiveFunction()) {
                 melhor.setSolution(s);
                 k = 1;
@@ -3137,7 +3140,7 @@ public class Algorithms {
             solution.setDeliveryTimeWindowAntecipation(FO8(solution));
             solution.setTotalOccupationRate(FO9(solution, Qmax));
             Algorithms.evaluateAggregatedObjectiveFunctions(solution, 1, 1, 1, 1, 1);
-            solution.setObjectiveFunction(FuncaoDeAvaliacao(solution, listRequests, c));
+            solution.setObjectiveFunction(scalarizedEvaluationFuntion(solution, listRequests, c));
             solution.setLogger(log);
             solution.linkTheRoutes();
             //solutionCost = FO(S);// ???IMPORTANTE?????

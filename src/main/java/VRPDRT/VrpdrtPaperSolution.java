@@ -6,6 +6,7 @@
 package VRPDRT;
 
 import Algorithms.Algorithms;
+import static Algorithms.Algorithms.IteratedLocalSearch;
 import static Algorithms.Algorithms.buildInstaceName;
 import static Algorithms.Algorithms.rebuildSolutionForOnlineAlgorithms;
 import Algorithms.EvolutionaryAlgorithms;
@@ -66,7 +67,6 @@ public class VrpdrtPaperSolution {
     public static void main(String[] args) throws ApiException, Exception, IOException, BiffException {
         String directionsApiKey = "AIzaSyDnbydYYYtvGROBcUXDiiOaxafkmJ0vyos";
         String filePath = "C:\\Doutorado - Renan\\Excel Instances\\";
-        //filePath = "/home/rmendes/VRPDRT/";
 
         int numberOfRequests = 4;
         int requestTimeWindows = 10;
@@ -83,22 +83,10 @@ public class VrpdrtPaperSolution {
         System.out.println(instanceName);
 
         Integer populationSize = 100;
-        Integer maximumNumberOfGenerations = 1000;
-        Integer maximumNumberOfExecutions = 21;//21
-        double probabilityOfMutation = 0.8;//0.9//0.02
-        double probabilityOfCrossover = 0.7;
-        double neighborhoodSelectionProbability = 0.02;//0.02//0.5
-
-        int numberOfEvaluations = 60000;
-        int intervalOfAggregations = 5;
-        int neighborSize = 10;//10//3
-        int maximumNumberOfReplacedSolutions = 1;//10//3//1//5
-        int fileSize = populationSize;
-        EvolutionaryAlgorithms.FunctionType functionType = EvolutionaryAlgorithms.FunctionType.PBI;//PBI
-
+    
         List<Double> parameters = new ArrayList<>();
         List<List<Double>> nadirPoint = new ArrayList<>();
-        List<List<Integer>> transformationList = new ArrayList<>();
+       
         if (numberOfRequests >= 250) {
             new ScriptGenerator(instanceName, instanceSize, vehicleCapacity)
                     .generate("30d", "lamho-0");
@@ -114,17 +102,6 @@ public class VrpdrtPaperSolution {
         Algorithms.printProblemInformations(requests, numberOfVehicles, vehicleCapacity, instanceName, adjacenciesData, nodesData);
         Methods.initializeFleetOfVehicles(setOfVehicles, numberOfVehicles);
 
-        parameters.add(0.10);//1
-        parameters.add((double) requestTimeWindows);//delta_t
-        parameters.add((double) numberOfNodes);//n
-        parameters.add((double) numberOfRequests * numberOfNodes);//r n
-        parameters.add((double) numberOfRequests);//r
-        parameters.add((double) numberOfNodes);//n
-        parameters.add(1.0);//1
-        parameters.add((double) numberOfRequests * numberOfNodes * requestTimeWindows);//
-
-        parameters.clear();
-
         parameters.add(1.0);
         parameters.add(1.0);
         parameters.add(1.0);
@@ -139,26 +116,27 @@ public class VrpdrtPaperSolution {
         nadirPoint.add(mins);
         nadirPoint.add(maxs);
 
-        System.out.println("Nadir Point = " + nadirPoint);
-        System.out.println("Instance Name = " + instanceName);
         int reducedDimension = 2;
 
-        ProblemSolution s = new ProblemSolution();
-        s.setSolution(Algorithms.greedyConstructive(0.4, 0.2, 0.2, 0.2, nadirPoint, 0, requests, requestsWhichBoardsInNode,
+        ProblemSolution solution = new ProblemSolution();
+        ProblemSolution solutionOptimized = new ProblemSolution();
+        solution.setSolution(Algorithms.greedyConstructive(0.4, 0.2, 0.2, 0.2, nadirPoint, 0, requests, requestsWhichBoardsInNode,
                 requestsWhichLeavesInNode, numberOfNodes, vehicleCapacity, setOfVehicles, listOfNonAttendedRequests, requestList,
                 loadIndexList, timeBetweenNodes, distanceBetweenNodes, timeWindows, currentTime, lastNode));
 
-        System.out.println(s.getSetOfRoutes());
-        System.out.println("Attendance Request List");
-        s.getSetOfRoutes().forEach(route -> System.out.println(route.getRequestAttendanceList()));
-
         System.out.println("Solution");
-        System.out.println(s);
-        System.out.println(s.getStringWithOriginalObjectivesForCsvFile());
+        System.out.println(solution);
 
         List<Node> nodes = new ReadDataInExcelFile(filePath, instanceName, nodesData, adjacenciesData).getListOfNodes();
-        System.out.println(nodes);
 
-        s.getStaticMapWithAllRoutes(nodes, "bh_adj_n12s", nodesData);
+        solution.getStaticMapWithAllRoutes(nodes, "bh_adj_n12s", nodesData);
+        
+        solutionOptimized.setSolution(Algorithms.IteratedLocalSearch(reducedDimension, nadirPoint, parameters, solution, requests, requestsWhichBoardsInNode, requestsWhichLeavesInNode,
+                numberOfNodes, vehicleCapacity, setOfVehicles, listOfNonAttendedRequests, requestList, loadIndexList, timeBetweenNodes, distanceBetweenNodes, timeWindows));
+        
+        System.out.println("Final solution");
+        System.out.println(solutionOptimized);
+        solutionOptimized.getStaticMapWithAllRoutes(nodes, "bh_adj_n12s", nodesData);
+        
     }
 }

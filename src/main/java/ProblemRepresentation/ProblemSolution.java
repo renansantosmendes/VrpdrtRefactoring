@@ -217,6 +217,9 @@ public class ProblemSolution implements Comparable<ProblemSolution> {
         deliveryTimeWindowAntecipation =  solution.getDeliveryTimeWindowAntecipation();
         totalRouteTimeChargeBanlance =  solution.getTotalRouteTimeChargeBanlance();
         totalOccupationRate = solution.getTotalOccupationRate();
+        
+        originalObjectives = new ArrayList<Double>();
+        originalObjectivesNormalized = new ArrayList<Double>();
         originalObjectives.addAll(solution.getOriginalObjectives());
         originalObjectivesNormalized.addAll(solution.getOriginalObjectivesNormalized());
 
@@ -869,7 +872,8 @@ public class ProblemSolution implements Comparable<ProblemSolution> {
     @Override
     public String toString() {
         DecimalFormat df = new DecimalFormat("0.0000");
-        String s = this.originalObjectives + "\t" + getListOfAggregatedObjectives() + "\t" + totalDistance + "\t"
+//        String s = this.originalObjectives + "\t" + getListOfAggregatedObjectives() + "\t" + totalDistance + "\t"
+        String s = "FO = " + objectiveFunction + "\t" + totalDistance + "\t"
                 + totalDeliveryDelay + "\t" + totalRouteTimeChargeBanlance + "\t"
                 + numberOfVehicles + "\t" + totalWaintingTime + "\t" + totalTravelTime + "\t" + deliveryTimeWindowAntecipation
                 + "\t" + totalOccupationRate + "\t";

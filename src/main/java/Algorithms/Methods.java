@@ -772,11 +772,11 @@ public class Methods {
         evaluateSolution(solution, nadirPoint, c, Qmax, listRequests);
         //evaluateAggregatedObjectiveFunctions(solution, 1, 1, 1, 1, 1);
 
-        solution.setObjectiveFunction(FuncaoDeAvaliacao(solution, listRequests, c));
+        solution.setObjectiveFunction(scalarizedEvaluationFuntion(solution, listRequests, c));
         solution.setLogger(log);
         solution.linkTheRoutes();
         //S.setfObjetivo1((int) FuncaoObjetivo(S, c));
-        solution.setObjectiveFunction(FuncaoDeAvaliacao(solution, listRequests, c));
+        solution.setObjectiveFunction(scalarizedEvaluationFuntion(solution, listRequests, c));
         solution.setAggregatedObjectives(new double[reducedDimension]);
         return solution;
     }
